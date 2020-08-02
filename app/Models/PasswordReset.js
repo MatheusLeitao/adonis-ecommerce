@@ -4,6 +4,9 @@
 const Model = use('Model')
 
 class PasswordReset extends Model {
+    static boot() {
+        super.boot()
+    }
 }
 
 module.exports = PasswordReset
