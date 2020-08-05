@@ -5,6 +5,11 @@ const Model = use('Model')
 
 class Order extends Model {
 
+    static boot() {
+        super.boot()
+        this.addHook('afterFind', 'OrderHook.updateValues')
+    }
+
     items() {
         return this.hasMany('App/Models/Order')
     }
