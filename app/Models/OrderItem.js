@@ -5,9 +5,11 @@ const Model = use('Model')
 
 class OrderItem extends Model {
 
-    // static get traits(){
-    //     return ['App/Models/Traits/NoTimestamp']
-    // }
+    static boot() {
+        super.boot()
+
+        this.addHook('beforeSave', 'OrderItemHook.updateSubtotal')
+    }
 
     product() {
         return this.belongsTo('App/Models/Product')
