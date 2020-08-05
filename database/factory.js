@@ -15,24 +15,25 @@ const Factory = require('@adonisjs/lucid/src/Factory')
 
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
+Factory.blueprint('App/Models/User', async (faker) => {
 
-Factory.blueprint('App/Models/User', faker => {
     return {
         name: faker.first(),
         surname: faker.last(),
         email: faker.email({ domain: 'soul.dev.br' }),
         password: 'secret'
     }
+
 })
 
-Factory.blueprint('App/Models/Category', faker => {
+Factory.blueprint('App/Models/Category', async (faker) => {
     return {
         title: faker.country({ full: true }),
         description: faker.sentence(),
     }
 })
 
-Factory.blueprint('App/Models/Product', faker => {
+Factory.blueprint('App/Models/Product', async (faker) => {
     return {
         name: faker.animal(),
         description: faker.sentence(),
