@@ -1,6 +1,6 @@
 'use strict'
 
-const Factory = require('@adonisjs/lucid/src/Factory')
+// const Factory = require('@adonisjs/lucid/src/Factory')
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +15,7 @@ const Factory = require('@adonisjs/lucid/src/Factory')
 
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
+
 Factory.blueprint('App/Models/User', async (faker) => {
 
     return {
