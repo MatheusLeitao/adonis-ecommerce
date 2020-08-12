@@ -29,6 +29,7 @@ class OrderController {
    * @param {Response} ctx.response
    */
   async store ({ request, response }) {
+    null
   }
 
   /**
