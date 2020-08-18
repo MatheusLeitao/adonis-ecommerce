@@ -18,6 +18,7 @@ class OrderController {
    * @param {View} ctx.view
    */
   async index ({ request, response, view }) {
+    const categories = await null
   }
 
   /**
@@ -29,7 +30,7 @@ class OrderController {
    * @param {Response} ctx.response
    */
   async store ({ request, response }) {
-    null
+    
   }
 
   /**

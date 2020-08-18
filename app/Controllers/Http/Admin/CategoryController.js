@@ -4,10 +4,14 @@
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
+const Category = use('App/Models/Category')
+
+
 /**
  * Resourceful controller for interacting with categories
  */
 class CategoryController {
+
   /**
    * Show a list of all categories.
    * GET categories
@@ -16,8 +20,22 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    * @param {View} ctx.view
+   * @param {object} ctx.pagination
    */
-  async index ({ request, response, view }) {
+
+  async index({ request, response, view, pagination }) {
+
+    const title = request.input('title');
+    const query = Category.query()
+
+    console.log(title);
+    if (title)
+      query.where('title', 'LIKE', `%${title}%`)
+
+    const { page, limit } = pagination
+    const categories = await query.paginate(page, limit);
+
+    return response.send(categories);
   }
 
   /**
@@ -28,7 +46,7 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
+  async store({ request, response }) {
   }
 
   /**
@@ -40,7 +58,7 @@ class CategoryController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show ({ params, request, response, view }) {
+  async show({ params, request, response, view }) {
   }
 
 
@@ -52,7 +70,7 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update({ params, request, response }) {
   }
 
   /**
@@ -63,7 +81,7 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
+  async destroy({ params, request, response }) {
   }
 }
 
