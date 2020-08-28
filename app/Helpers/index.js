@@ -29,6 +29,57 @@ const str_random = async (length = 40) => {
 }
 
 /**
+ * Move a single file to a specified path, if there is no path, it will be moved
+ * to 'publics/uploads'.
+ *
+ * @param {FileJar} file - Archieve to be moved
+ * @param {pathway} path - Path which file whill be placed
+ * @return { Object<FileJar> }
+ *
+ */
+
+const manageSingleUploads = async (file, path = null) => {
+    path = path ? path : Helpers.publicPath('uploads')
+    const randomName = await str_random(30)
+
+    let fileName = `${new Date().getTime}-${randomName}.${file.subtype}`
+
+    await file.move(path, { name: fileName })
+
+    return file
+}
+
+
+/**
+ * Move a multiples files to a specified path, if there is no path, it will be moved
+ * to 'publics/uploads'.
+ *
+ * @param { FileJar } fileJar - Archieves to be moved
+ * @param { pathway } path - Path which file whill be placed
+ * @return { Object }
+ *
+ */
+
+const manageMultiplesUploads = async (fileJar, path = null) => {
+    path = path ? path : Helpers.publicPath('uploads')
+    let successes = [], errors = [];
+
+    await Promise.all(fileJar.files.map(async file =>{
+        let randomName = str_random(30)
+        let fileName = `${new Date().getTime}-${randomName}.${file.subtype}`
+        await file.move(path, { name: fileName })
+
+        if(file.moved())
+            successes.push(file)
+        else
+            errors.push(file.error())
+    }))
+
+    return {successe, erros}
+}
+
+
+/**
  * token:     description:             example:
  * #YYYY#     4-digit year             1999
  * #YY#       2-digit year             99
@@ -80,5 +131,7 @@ const customFormat = formatString => {
 
 module.exports = {
     str_random,
-    customFormat
+    customFormat,
+    manageSingleUploads,
+    manageMultiplesUploads
 }
