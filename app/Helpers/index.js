@@ -20,7 +20,7 @@ const str_random = async (length = 40) => {
         console.log(`SIZE IN STR_RANDOM: ${size}`);
         let bytes = await crypto.randomBytes(size)
         console.log(`BYTES IN STR_RANDOM: ${bytes}`);
-        let buffer = new Buffer(bytes)
+        let buffer = Buffer.from(bytes)
         console.log(`BUFFER IN STR_RANDOM: ${buffer}`);
         string += buffer.toString('base64').replace(/[^a-zA-Z0-9]/g, '').substr(0, size)
     }
