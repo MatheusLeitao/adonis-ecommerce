@@ -75,7 +75,7 @@ const manageMultiplesUploads = async (fileJar, path = null) => {
             errors.push(file.error())
     }))
 
-    return {successe, erros}
+    return {successes, errors}
 }
 
 
