@@ -4,6 +4,11 @@
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
+const Order = use('App/Models/Order')
+const Coupon = use('App/Models/Coupon')
+const Discount = use('App/Models/Discount')
+const Database = use('Database')
+const Service = use('App/Services/Order/OrderService')
 /**
  * Resourceful controller for interacting with orders
  */
@@ -16,21 +21,27 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    * @param {View} ctx.view
+   * @param {object} ctx.pagination
    */
-  async index ({ request, response, view }) {
+  async index({ request, response, pagination }) {
+    const { status, id } = request.only(['status', 'id'])
+    const { page, limit } = pagination
+    const query = Order.query()
+
+    if (status && id) {
+      query.where('status', status)
+      query.orWhere('id', 'LIKE', `%${id}%`)
+    }
+    else if (status)
+      query.where('status', status)
+    else
+      query.where('id', 'LIKE', `%${id}%`)
+
+
+    const orders = await query.orderBy('id', 'DESC').paginate(page, limit)
+    return response.send(orders)
   }
 
-  /**
-   * Render a form to be used for creating a new order.
-   * GET orders/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
-  }
 
   /**
    * Create/save a new order.
@@ -40,7 +51,25 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
+  async store({ request, response }) {
+    const trx = await Database.beginTransaction()
+
+    try {
+      const { user_id, items, status } = request.all()
+      let order = await Order.create({ user_id, status }, trx)
+      const service = new Service(order, trx)
+
+      if (items && items.length > 0)
+        await service.syncItems(items)
+
+      await trx.commit()
+      return response.status(201).send(order)
+
+    } catch (error) {
+      await trx.rollback()
+      return response.status(400).send({ message: 'Couldn\'t create order.' })
+
+    }
   }
 
   /**
@@ -52,19 +81,9 @@ class OrderController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show ({ params, request, response, view }) {
-  }
-
-  /**
-   * Render a form to update an existing order.
-   * GET orders/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
+  async show({ params: { id }, response }) {
+    const order = Order.findOrFail(id)
+    return response.send(order)
   }
 
   /**
@@ -75,7 +94,22 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update({ params: { id }, request, response }) {
+    const order = Order.findOrFail(id)
+    const trx = Database.beginTransaction();
+    try {
+      const { user_id, items, status } = request.all()
+      order.merge({ user_id, status })
+      const service = new Service(order, trx)
+      await service.updateItems(items)
+      await order.save(trx)
+      await trx.commit()
+      return response.send(order)
+
+    } catch (error) {
+      await trx.rollback()
+      return response.status(400).send({ message: 'Coundn\'t edit order.' })
+    }
   }
 
   /**
@@ -86,8 +120,72 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
+  async destroy({ params: { id }, request, response }) {
+    const order = Order.findOrFail(id)
+    const trx = Database.beginTransaction()
+    try {
+      await order.items().delete(trx)
+      await order.delete(trx)
+      await trx.commit()
+      return response.status(204).send()
+
+    } catch (error) {
+      trx.rollback()
+      return response.status(400).send({ message: 'Couldn\'t delete selected order.' })
+    }
   }
+
+  /**
+   * Apply discount when all prerequisites are fulfilled.
+   *
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+
+  async applyDiscount({ params: { id }, request, response }) {
+    const { code } = request.all()
+    const coupon = await Coupon.findByOrFail('code', code.toUpperCase())
+    const order = await Order.findOrFail(id)
+    var discount, info = {}
+
+    try {
+      const service = new Service(order)
+      const canAddDiscount = await service.canApplyDiscount(coupon)
+      const orderDiscounts = await order.coupons().getCount()
+
+      const canApplyToOrder = orderDiscounts <1 || (orderDiscounts>= 1 && coupon.recursive)
+
+      if(canAddDiscount && canApplyToOrder){
+        discount = await Discount.findOrCreate({
+          order_id: order.id,
+          coupon_id: coupon.id
+        })
+        info.message = 'Coupon applied with success'
+        info.success = true
+      }else{
+        info.message = 'Coupon couldn\'t be applied'
+        info.success = false
+      }
+
+      return response.send({order, info})
+    } catch (error) {
+      info.message = 'Coupon couldn\'t be applied try'
+      info.success = false
+      return response.status(400).send({order, info})
+    }
+  }
+
+  async removeDiscount({params:{id}, request, response}){
+    const {discount_id} = request.all()
+    const discount = Discount.findOrFail(discount_id)
+
+    await discount.delete()
+    return response.status(204).send()
+
+  }
+
 }
 
 module.exports = OrderController
