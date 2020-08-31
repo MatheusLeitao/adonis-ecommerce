@@ -11,6 +11,10 @@ Route.group(() => {
     Route.resource('images', 'ImageController').apiOnly()
     Route.resource('coupons', 'CouponController').apiOnly()
     Route.resource('users', 'UserController').apiOnly()
+    // Discount routes
+    Route.post('orders/:id/discount', 'OrderController.appplyDiscount')
+    Route.delete('orders/:id/discount', 'OrderController.removeDiscount')
     Route.resource('orders', 'OrderController').apiOnly()
+
 
 }).prefix('v1/admin').namespace('Admin')

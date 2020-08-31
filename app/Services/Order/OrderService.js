@@ -33,6 +33,9 @@ class OrderService {
     async canApplyDiscount(coupon) {
         const couponProducts = await Database.from('coupon_products').where('coupon_id', coupon.id).pluck('product_id')
         const couponClients = await Database.from('coupon_user').where('coupon_id', coupon.id).pluck('user_id')
+        const now = new Date().getTime()
+
+        if(now > coupon.valid_from.getTime() || (typeof coupon.valid_until == 'object' && coupon.valid_until.getTime() < now)) return false;
 
         /**
          * Rule below certifies that the coupon applied isn't associated to none rule, so you can use it freely.
