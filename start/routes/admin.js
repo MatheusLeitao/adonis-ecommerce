@@ -13,10 +13,10 @@ Route.group(() => {
     Route.resource('products', 'ProductController').apiOnly()
     Route.resource('images', 'ImageController').apiOnly()
     Route.resource('coupons', 'CouponController').apiOnly()
-    Route.resource('users', 'UserController').apiOnly().validator([
+    Route.resource('users', 'UserController').apiOnly().validator(new Map([
         [['users.store'], ['Admin/StoreUser']],
         [['users.update'], ['Admin/StoreUser']]
-    ])
+    ]))
     // Discount routes
     Route.post('orders/:id/discount', 'OrderController.appplyDiscount')
     Route.delete('orders/:id/discount', 'OrderController.removeDiscount')
