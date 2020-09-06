@@ -5,6 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const Users = use('App/Models/User')
+const Transformer = use('App/Transformers/Admin/UserTransformer')
 
 
 class UserController {
@@ -16,10 +17,11 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    * @param {View} ctx.view
+   * @param {TransformWith} ctx.transform
    * @param {object} ctx.pagination
    */
 
-  async index({ request, response, pagination }) {
+  async index({ request, response, pagination, transform }) {
     const name = request.input('name');
     const surname = request.input('surname');
     const email = request.input('email');
@@ -33,8 +35,8 @@ class UserController {
     }
 
     const { page, limit } = pagination
-    const users = await query.paginate(page, limit);
-
+    var users = await query.paginate(page, limit);
+    users = await transform.paginate(users, Transformer)
     return response.send(users);
   }
 
@@ -44,9 +46,10 @@ class UserController {
    *
    * @param {object} ctx
    * @param {Request} ctx.request
+   * @param {TransformWith} ctx.transform
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {
+  async store({ request, response, transform }) {
     try {
       const { name, surname, password, image_id, email } = request.all()
       if (!name) return response.status(400).send({ error: 'Name not specified' })
@@ -54,7 +57,8 @@ class UserController {
       if (!password) return response.status(400).send({ error: 'Password not specified' })
       if (!email) return response.status(400).send({ error: 'Email not specified' })
 
-      const user = await Users.create({ name, surname, password, email, image_id })
+      user = await Users.create({ name, surname, password, email, image_id })
+      user = await transform.item(user, Transformer)
       return response.status(201).send(user)
     } catch (error) {
       return response.status(400).send({
@@ -70,11 +74,13 @@ class UserController {
    *
    * @param {object} ctx
    * @param {Request} ctx.request
+   * @param {TransformWith} ctx.transform
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show({ params: { id }, response }) {
-    const user = await Users.findOrFail(id)
+  async show({ params: { id }, response, transform }) {
+    var user = await Users.findOrFail(id)
+    user = await transform.item(user, Transformer)
     return response.send(user)
   }
 
@@ -85,14 +91,16 @@ class UserController {
    *
    * @param {object} ctx
    * @param {Request} ctx.request
+   * @param {TransformWith} ctx.transform
    * @param {Response} ctx.response
    */
-  async update({ params: { id }, request, response }) {
-    const user = await Users.findOrFail(id)
+  async update({ params: { id }, request, response, transform }) {
+    var user = await Users.findOrFail(id)
     try {
       const { name, surname, password, image_id, email } = request.all();
       user.merge({ name, surname, password, image_id, email })
       await user.save()
+      user = await transform.item(user, Transformer)
       return response.send(user)
     } catch (error) {
 
@@ -107,7 +115,7 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params:{id}, request, response }) {
+  async destroy({ params: { id }, request, response }) {
     const user = await Users.findOrFail(id)
     user.delete()
     return response.status(204).send()

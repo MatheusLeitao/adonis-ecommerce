@@ -5,6 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const Products = use('App/Models/Product')
+const Transformer = use('App/Transformers/Admin/ProductTransformer')
 
 
 /**
@@ -18,10 +19,10 @@ class ProductController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
-   * @param {View} ctx.view
+   * @param {TransformWith} ctx.transform
    * @param {object} ctx.pagination
    */
-  async index({ request, response, pagination }) {
+  async index({ request, response, pagination, transform }) {
     const name = request.input('name');
     const query = Products.query()
 
@@ -29,8 +30,8 @@ class ProductController {
     if (name) query.where('name', 'LIKE', `%${name}%`)
 
     const { page, limit } = pagination
-    const products = await query.paginate(page, limit);
-
+    var products = await query.paginate(page, limit);
+    products = await transform.paginate(products, Transformer)
     return response.send(products);
   }
 
@@ -41,15 +42,17 @@ class ProductController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {TransformWith} ctx.transform
    */
-  async store({ request, response }) {
+  async store({ request, response, transform }) {
     try {
       const { name, description, image_id, price } = request.all()
       if (!name) return response.status(400).send({ error: 'Name not specified' })
       if (!description) return response.status(400).send({ error: 'Description not specified' })
       if (!price) return response.status(400).send({ error: 'Price not specified' })
 
-      const product = await Products.create({ name, description, image_id, price })
+      var product = await Products.create({ name, description, image_id, price })
+      product = await transform.item(product, Transformer)
       return response.status(201).send(product)
     } catch (error) {
       return response.status(400).send({
@@ -66,10 +69,12 @@ class ProductController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {TransformWith} ctx.transform
    * @param {View} ctx.view
    */
-  async show({ params: { id }, response }) {
-    const product = await Products.findOrFail(id)
+  async show({ params: { id }, response, transform }) {
+    var product = await Products.findOrFail(id)
+    product = await transform.item(product, Transformer)
     return response.send(product)
   }
 
@@ -79,19 +84,21 @@ class ProductController {
    *
    * @param {object} ctx
    * @param {Request} ctx.request
+   * @param {TransformWith} ctx.transform
    * @param {Response} ctx.response
    */
-  async update({ params: { id }, request, response }) {
+  async update({ params: { id }, request, response, transofrm }) {
 
-    const product = await Products.findOrFail(id);
+    var product = await Products.findOrFail(id);
     try {
       const { name, description, image_id, price } = request.all();
       product.merge({ name, description, image_id, price })
       await product.save()
+      product = await transform.item(product, Transformer)
       return response.send(product)
 
     } catch (error) {
-      return response.status(400).send({error:'Couldn\'t update product'})
+      return response.status(400).send({ error: 'Couldn\'t update product' })
     }
 
   }
