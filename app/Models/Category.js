@@ -7,6 +7,9 @@ class Category extends Model {
     /**
      * Relation between Category and Image
      */
+    static get deleteTimestamp () {
+        return 'deleted_at'
+    }
 
     image(){
         return this.belongsTo('App/Models/Image')

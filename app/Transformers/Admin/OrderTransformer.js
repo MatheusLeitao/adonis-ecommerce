@@ -43,15 +43,15 @@ class OrderTransformer extends BumblebeeTransformer {
   }
 
   includeCoupons(order){
-    return this.item(order.getRelated('coupons'), CouponTransformer)
+    return this.collection(order.getRelated('coupons'), CouponTransformer)
   }
 
   includeItems(order){
-    return this.item(order.getRelated('items'), ItemTransformer)
+    return this.collection(order.getRelated('items'), ItemTransformer)
   }
 
   includeDiscounts(order){
-    return this.item(order.getRelated('discounts'), DiscountTransformer)
+    return this.collection(order.getRelated('discounts'), DiscountTransformer)
   }
 
 

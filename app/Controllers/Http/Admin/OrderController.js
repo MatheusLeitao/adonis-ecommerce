@@ -67,6 +67,7 @@ class OrderController {
         await service.syncItems(items)
 
       await trx.commit()
+      order = Order.find(order.id)
       order = await transform.item(order, Transformer)
       return response.status(201).send(order)
 
