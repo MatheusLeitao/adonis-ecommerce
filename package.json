@@ -28,6 +28,7 @@
     "@adonisjs/mail": "^3.0.10",
     "@adonisjs/validator": "^5.0.6",
     "@adonisjs/websocket": "^1.0.12",
+    "@radmen/adonis-lucid-soft-deletes": "^0.2.0",
     "adonis-acl": "^1.1.1",
     "adonis-bumblebee": "^2.2.0",
     "mysql": "^2.18.1"

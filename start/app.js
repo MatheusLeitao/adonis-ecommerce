@@ -20,7 +20,8 @@ const providers = [
   '@adonisjs/validator/providers/ValidatorProvider',
   '@adonisjs/websocket/providers/WsProvider',
   'adonis-acl/providers/AclProvider',
-  'adonis-bumblebee/providers/BumblebeeProvider'
+  'adonis-bumblebee/providers/BumblebeeProvider',
+  '@radmen/adonis-lucid-soft-deletes/providers/SoftDeletesProvider'
 ]
 
 /*

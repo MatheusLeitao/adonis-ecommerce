@@ -7,9 +7,10 @@ class Category extends Model {
     /**
      * Relation between Category and Image
      */
-    static get deleteTimestamp () {
-        return 'deleted_at'
-    }
+    static boot () {
+        super.boot()
+        this.addTrait('@provider:Lucid/SoftDeletes')
+      }
 
     image(){
         return this.belongsTo('App/Models/Image')
